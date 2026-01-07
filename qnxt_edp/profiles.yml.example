@@ -1,0 +1,29 @@
+# Copy this file to ~/.dbt/profiles.yml and update with your credentials
+# DO NOT commit profiles.yml with real credentials to version control
+
+qnxt_edp:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      role: TRANSFORMER_ROLE
+      database: EDP
+      warehouse: TRANSFORM_WH
+      schema: DEV
+      threads: 4
+      client_session_keep_alive: False
+
+    prod:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      role: TRANSFORMER_ROLE
+      database: EDP
+      warehouse: TRANSFORM_WH
+      schema: PROD
+      threads: 8
+      client_session_keep_alive: False

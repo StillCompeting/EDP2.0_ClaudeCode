@@ -1,0 +1,73 @@
+name: 'qnxt_edp'
+version: '1.0.0'
+config-version: 2
+
+profile: 'qnxt_edp'
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+vars:
+  # Source database and schema configuration
+  qnxt_database: 'PLAYGROUND'
+  qnxt_schema: 'RAW_QNXT'
+
+  # Target schema configuration for medallion layers
+  bronze_schema: 'BRONZE'
+  silver_schema: 'SILVER'
+  gold_schema: 'GOLD'
+
+models:
+  qnxt_edp:
+    # Staging models (Bronze layer)
+    staging:
+      +schema: bronze
+      +materialized: view
+      +tags: ['bronze', 'staging']
+
+    # Marts (Silver and Gold layers)
+    marts:
+      core:
+        +schema: silver
+        +materialized: table
+        +tags: ['silver', 'core']
+      claims:
+        +schema: gold
+        +materialized: table
+        +tags: ['gold', 'claims']
+      membership:
+        +schema: gold
+        +materialized: table
+        +tags: ['gold', 'membership']
+      finance:
+        +schema: gold
+        +materialized: table
+        +tags: ['gold', 'finance']
+
+seeds:
+  qnxt_edp:
+    +schema: silver
+    # Source table seeds - load to RAW_QNXT schema
+    sample_cldiag:
+      +schema: RAW_QNXT
+      +alias: cldiag
+    sample_clproc:
+      +schema: RAW_QNXT
+      +alias: clproc
+    sample_cladjust:
+      +schema: RAW_QNXT
+      +alias: cladjust
+
+snapshots:
+  qnxt_edp:
+    +schema: silver
+    +strategy: timestamp
+    +updated_at: updated_at

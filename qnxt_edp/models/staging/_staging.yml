@@ -1,0 +1,306 @@
+version: 2
+
+models:
+  # ============================================
+  # MEMBER STAGING MODELS
+  # ============================================
+  - name: stg_qnxt__member
+    description: '{{ doc("stg_qnxt__member") }}'
+    columns:
+      - name: member_id
+        description: "Primary member identifier"
+        tests:
+          - not_null
+          - unique
+      - name: date_of_birth
+        description: "Member date of birth"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: date
+      - name: gender_code
+        description: "Gender code (M/F/U)"
+        tests:
+          - accepted_values:
+              values: ['M', 'F', 'U']
+              quote: true
+
+  - name: stg_qnxt__mbrelig
+    description: '{{ doc("stg_qnxt__mbrelig") }}'
+    tests:
+      - dbt_expectations.expect_column_pair_values_A_to_be_greater_than_B:
+          column_A: termination_date
+          column_B: effective_date
+          or_equal: true
+          row_condition: "effective_date is not null and termination_date is not null"
+          config:
+            severity: warn
+    columns:
+      - name: member_id
+        description: '{{ doc("member_id") }}'
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_qnxt__member')
+              field: member_id
+              config:
+                severity: warn
+      - name: eligibility_id
+        description: "Eligibility segment identifier"
+        tests:
+          - not_null
+          - unique
+      - name: effective_date
+        description: "Eligibility effective date"
+        tests:
+          - not_null
+      - name: termination_date
+        description: "Eligibility termination date"
+
+  # ============================================
+  # CLAIMS STAGING MODELS
+  # ============================================
+  - name: stg_qnxt__clclaim
+    description: '{{ doc("stg_qnxt__clclaim") }}'
+    tests:
+      - dbt_expectations.expect_column_pair_values_A_to_be_greater_than_B:
+          column_A: service_to_date
+          column_B: service_from_date
+          or_equal: true
+          row_condition: "service_from_date is not null and service_to_date is not null"
+          config:
+            severity: warn
+    columns:
+      - name: claim_id
+        description: "Primary claim identifier"
+        tests:
+          - not_null
+          - unique
+      - name: member_id
+        description: "Member identifier"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_qnxt__member')
+              field: member_id
+              config:
+                severity: warn
+      - name: billing_provider_id
+        description: "Billing provider identifier"
+        tests:
+          - relationships:
+              to: ref('stg_qnxt__provider')
+              field: provider_id
+              config:
+                severity: warn
+      - name: claim_type_code
+        description: "Claim type code (I/P/D/R)"
+        tests:
+          - accepted_values:
+              values: ['I', 'P', 'D', 'R']
+              quote: true
+      - name: claim_status_code
+        description: "Claim processing status code"
+        tests:
+          - not_null
+      - name: service_from_date
+        description: "Service start date"
+      - name: service_to_date
+        description: "Service end date"
+      - name: billed_amount
+        description: "Total billed amount"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 10000000
+      - name: allowed_amount
+        description: "Total allowed amount"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 10000000
+      - name: paid_amount
+        description: "Total paid amount"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 10000000
+
+  - name: stg_qnxt__clline
+    description: '{{ doc("stg_qnxt__clline") }}'
+    tests:
+      - dbt_expectations.expect_column_pair_values_A_to_be_greater_than_B:
+          column_A: service_to_date
+          column_B: service_from_date
+          or_equal: true
+          row_condition: "service_from_date is not null and service_to_date is not null"
+          config:
+            severity: warn
+    columns:
+      - name: claim_line_id
+        description: "Surrogate key for claim line"
+        tests:
+          - not_null
+          - unique
+      - name: claim_id
+        description: "Parent claim identifier"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_qnxt__clclaim')
+              field: claim_id
+      - name: line_number
+        description: "Line sequence number"
+        tests:
+          - not_null
+      - name: procedure_code
+        description: "CPT/HCPCS procedure code"
+      - name: revenue_code
+        description: "Revenue code for institutional claims"
+      - name: service_from_date
+        description: "Line service start date"
+      - name: service_to_date
+        description: "Line service end date"
+      - name: billed_amount
+        description: "Line billed amount"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 10000000
+      - name: paid_amount
+        description: "Line paid amount"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 10000000
+
+  - name: stg_qnxt__cldiag
+    description: '{{ doc("stg_qnxt__cldiag") }}'
+    columns:
+      - name: claim_diagnosis_id
+        description: "Surrogate key for claim diagnosis"
+        tests:
+          - not_null
+          - unique
+      - name: claim_id
+        description: "Parent claim identifier"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_qnxt__clclaim')
+              field: claim_id
+              config:
+                severity: warn
+      - name: diagnosis_sequence
+        description: "Diagnosis sequence (1=primary)"
+        tests:
+          - not_null
+      - name: diagnosis_code
+        description: "ICD diagnosis code"
+        tests:
+          - not_null
+      - name: diagnosis_code_type
+        description: "Code type (ICD9/ICD10)"
+        tests:
+          - accepted_values:
+              values: ['ICD9', 'ICD10', '9', '10']
+              quote: true
+              config:
+                severity: warn
+      - name: is_primary_diagnosis
+        description: "Flag indicating primary diagnosis"
+
+  - name: stg_qnxt__clproc
+    description: '{{ doc("stg_qnxt__clproc") }}'
+    columns:
+      - name: claim_procedure_id
+        description: "Surrogate key for claim procedure"
+        tests:
+          - not_null
+          - unique
+      - name: claim_id
+        description: "Parent claim identifier"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_qnxt__clclaim')
+              field: claim_id
+              config:
+                severity: warn
+      - name: procedure_sequence
+        description: "Procedure sequence (1=principal)"
+        tests:
+          - not_null
+      - name: procedure_code
+        description: "ICD procedure code"
+        tests:
+          - not_null
+      - name: is_principal_procedure
+        description: "Flag indicating principal procedure"
+
+  - name: stg_qnxt__cladjust
+    description: '{{ doc("stg_qnxt__cladjust") }}'
+    columns:
+      - name: claim_adjustment_id
+        description: "Surrogate key for claim adjustment"
+        tests:
+          - not_null
+          - unique
+      - name: claim_id
+        description: "Parent claim identifier"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_qnxt__clclaim')
+              field: claim_id
+              config:
+                severity: warn
+      - name: adjustment_sequence
+        description: "Adjustment sequence number"
+        tests:
+          - not_null
+      - name: adjustment_reason_code
+        description: "Adjustment reason code"
+      - name: adjustment_amount
+        description: "Adjustment amount (can be positive or negative)"
+
+  # ============================================
+  # PROVIDER STAGING MODELS
+  # ============================================
+  - name: stg_qnxt__provider
+    description: '{{ doc("stg_qnxt__provider") }}'
+    columns:
+      - name: provider_id
+        description: "Primary provider identifier"
+        tests:
+          - not_null
+          - unique
+      - name: npi
+        description: "National Provider Identifier"
+      - name: provider_name
+        description: "Provider display name"
+      - name: entity_type_code
+        description: "Entity type (I=Individual, O=Organization)"
+        tests:
+          - accepted_values:
+              values: ['I', 'O']
+              quote: true
+
+  # ============================================
+  # REFERENCE STAGING MODELS
+  # ============================================
+  - name: stg_qnxt__diagcode
+    description: "Staged diagnosis code reference from QNXT"
+    columns:
+      - name: diagnosis_code
+        description: "ICD diagnosis code"
+        tests:
+          - not_null
+          - unique
+      - name: diagnosis_description
+        description: "Diagnosis description"
+      - name: diagnosis_code_type
+        description: "Code type (ICD9/ICD10)"
+        tests:
+          - accepted_values:
+              values: ['ICD9', 'ICD10']
+              quote: true

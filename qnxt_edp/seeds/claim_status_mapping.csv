@@ -1,0 +1,11 @@
+status_code,status_name,status_category,is_final,is_payable
+A,Approved,Finalized,true,true
+D,Denied,Finalized,true,false
+P,Pending,In Process,false,false
+V,Void,Finalized,true,false
+S,Suspended,In Process,false,false
+I,In Process,In Process,false,false
+R,Rejected,Finalized,true,false
+H,Hold,In Process,false,false
+W,Waiting,In Process,false,false
+C,Cancelled,Finalized,true,false

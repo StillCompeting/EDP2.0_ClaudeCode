@@ -1,0 +1,6 @@
+memid,fname,mname,lname,dob,sex,ssn,status,email,language,_loaded_at
+MEM001,John,Michael,Smith,19850315,M,123456789,A,john.smith@email.com,EN,2024-01-01 10:00:00
+MEM002,Sarah,Anne,Johnson,19920622,F,234567890,A,sarah.johnson@email.com,EN,2024-01-01 10:00:00
+MEM003,Robert,James,Williams,19780910,M,345678901,A,robert.williams@email.com,EN,2024-01-01 10:00:00
+MEM004,Maria,Elena,Garcia,19881205,F,456789012,A,maria.garcia@email.com,ES,2024-01-01 10:00:00
+MEM005,David,Lee,Chen,19950430,M,567890123,A,david.chen@email.com,EN,2024-01-01 10:00:00

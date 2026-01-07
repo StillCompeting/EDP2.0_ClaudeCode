@@ -1,0 +1,61 @@
+version: 2
+
+models:
+  - name: mart_member_months
+    description: |
+      Member months mart providing enrollment metrics by line of business,
+      plan, and group. Essential for PMPM calculations and population analytics.
+
+      Grain: One row per calendar_month, line_of_business, plan_id, group_id, coverage_type combination.
+
+    columns:
+      - name: member_month_key
+        description: "Surrogate key for the member month record"
+        tests:
+          - not_null
+          - unique
+
+      - name: calendar_month
+        description: "First day of the calendar month"
+        tests:
+          - not_null
+
+      - name: year_month
+        description: "Year-month in YYYY-MM format"
+        tests:
+          - not_null
+
+      - name: line_of_business
+        description: "Line of business (Commercial, Medicare, Medicaid)"
+
+      - name: plan_id
+        description: "Plan identifier"
+
+      - name: member_months
+        description: "Total member months (accounts for partial month enrollment)"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+
+      - name: enrolled_members
+        description: "Count of distinct enrolled members"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+
+      - name: subscriber_count
+        description: "Count of subscribers (policyholders)"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+
+      - name: dependent_count
+        description: "Count of dependents"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+
+      - name: dependent_ratio
+        description: "Average dependents per subscriber"

@@ -1,0 +1,153 @@
+version: 2
+
+models:
+  # ============================================
+  # DATE DIMENSION
+  # ============================================
+  - name: dim_date
+    description: "Date dimension with calendar and fiscal attributes"
+    columns:
+      - name: date_key
+        description: "Primary key - the date value itself"
+        tests:
+          - not_null
+          - unique
+      - name: date_day
+        description: "The calendar date"
+        tests:
+          - not_null
+
+  # ============================================
+  # MEMBER DIMENSION
+  # ============================================
+  - name: dim_member
+    description: "Member dimension combining demographics with current eligibility"
+    columns:
+      - name: member_key
+        description: "Surrogate key for member"
+        tests:
+          - not_null
+          - unique
+      - name: member_id
+        description: "Natural key - QNXT member ID"
+        tests:
+          - not_null
+          - unique
+      - name: date_of_birth
+        description: "Member date of birth"
+      - name: current_age
+        description: "Member current age in years"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 120
+      - name: gender_code
+        description: "Gender code (M/F/U)"
+      - name: current_line_of_business
+        description: "Current line of business"
+      - name: is_currently_eligible
+        description: "Flag indicating if member is currently eligible"
+        tests:
+          - not_null
+
+  # ============================================
+  # PROVIDER DIMENSION
+  # ============================================
+  - name: dim_provider
+    description: "Provider dimension with classification and status"
+    columns:
+      - name: provider_key
+        description: "Surrogate key for provider"
+        tests:
+          - not_null
+          - unique
+      - name: provider_id
+        description: "Natural key - QNXT provider ID"
+        tests:
+          - not_null
+          - unique
+      - name: npi
+        description: "National Provider Identifier"
+      - name: provider_name
+        description: "Provider name"
+      - name: entity_type
+        description: "Individual or Organization"
+      - name: is_active
+        description: "Flag indicating if provider is currently active"
+        tests:
+          - not_null
+
+  # ============================================
+  # DIAGNOSIS DIMENSION
+  # ============================================
+  - name: dim_diagnosis
+    description: "Diagnosis code reference dimension"
+    columns:
+      - name: diagnosis_key
+        description: "Surrogate key for diagnosis"
+        tests:
+          - not_null
+          - unique
+      - name: diagnosis_code
+        description: "ICD diagnosis code"
+        tests:
+          - not_null
+      - name: diagnosis_description
+        description: "Diagnosis description"
+      - name: diagnosis_code_system
+        description: "Code system (ICD-9-CM, ICD-10-CM)"
+      - name: is_current
+        description: "Flag indicating if code is currently valid"
+
+  # ============================================
+  # CLAIMS FACT
+  # ============================================
+  - name: fct_claim
+    description: "Claims fact table with header-level financial and operational data"
+    columns:
+      - name: claim_key
+        description: "Surrogate key for claim"
+        tests:
+          - not_null
+          - unique
+      - name: claim_id
+        description: "Natural key - QNXT claim ID"
+        tests:
+          - not_null
+          - unique
+      - name: member_id
+        description: "Member identifier"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_member')
+              field: member_id
+      - name: billing_provider_id
+        description: "Billing provider identifier"
+      - name: claim_type
+        description: "Claim type (Institutional, Professional, etc.)"
+      - name: claim_status
+        description: "Current claim status"
+        tests:
+          - not_null
+      - name: billed_amount
+        description: "Total billed amount"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+      - name: paid_amount
+        description: "Total paid amount"
+        tests:
+          - not_null
+      - name: service_from_date
+        description: "Service start date"
+      - name: received_date
+        description: "Date claim was received"
+      - name: days_to_process
+        description: "Days from receipt to processing"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 365
+              row_condition: "days_to_process is not null"

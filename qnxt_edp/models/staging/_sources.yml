@@ -1,0 +1,338 @@
+version: 2
+
+sources:
+  - name: qnxt
+    description: "QNXT healthcare claims processing system source tables"
+    database: "{{ var('qnxt_database', 'RAW') }}"
+    schema: "{{ var('qnxt_schema', 'QNXT') }}"
+    freshness:
+      warn_after: {count: 24, period: hour}
+      error_after: {count: 48, period: hour}
+    loaded_at_field: _loaded_at
+
+    tables:
+      # ============================================
+      # MEMBER TABLES
+      # ============================================
+      - name: member
+        description: "Core member demographic information"
+        columns:
+          - name: memid
+            description: "Primary member identifier"
+            tests:
+              - not_null
+          - name: fname
+            description: "Member first name"
+          - name: lname
+            description: "Member last name"
+          - name: dob
+            description: "Date of birth"
+          - name: sex
+            description: "Gender code (M/F/U)"
+          - name: ssn
+            description: "Social security number"
+
+      - name: mbrelig
+        description: "Member eligibility segments"
+        columns:
+          - name: memid
+            description: "Member identifier"
+            tests:
+              - not_null
+          - name: eligid
+            description: "Eligibility segment identifier"
+            tests:
+              - not_null
+          - name: effdate
+            description: "Eligibility effective date"
+          - name: termdate
+            description: "Eligibility termination date"
+          - name: lobid
+            description: "Line of business identifier"
+          - name: planid
+            description: "Plan identifier"
+
+      - name: mbrenroll
+        description: "Member enrollment records"
+        columns:
+          - name: memid
+            description: "Member identifier"
+          - name: enrollid
+            description: "Enrollment identifier"
+          - name: enrolleffdate
+            description: "Enrollment effective date"
+          - name: enrolltermdate
+            description: "Enrollment termination date"
+
+      - name: mbraddress
+        description: "Member address information"
+        columns:
+          - name: memid
+            description: "Member identifier"
+          - name: addrtype
+            description: "Address type code"
+          - name: addr1
+            description: "Address line 1"
+          - name: addr2
+            description: "Address line 2"
+          - name: city
+            description: "City"
+          - name: state
+            description: "State code"
+          - name: zip
+            description: "ZIP code"
+
+      - name: mbrphone
+        description: "Member phone numbers"
+        columns:
+          - name: memid
+            description: "Member identifier"
+          - name: phonetype
+            description: "Phone type code"
+          - name: phone
+            description: "Phone number"
+
+      # ============================================
+      # CLAIMS TABLES
+      # ============================================
+      - name: clclaim
+        description: "Claim header information"
+        columns:
+          - name: claimid
+            description: "Primary claim identifier"
+            tests:
+              - not_null
+              - unique
+          - name: memid
+            description: "Member identifier"
+          - name: provid
+            description: "Provider identifier"
+          - name: svcfromdate
+            description: "Service from date"
+          - name: svctodate
+            description: "Service to date"
+          - name: recvddate
+            description: "Claim received date"
+          - name: paiddate
+            description: "Claim paid date"
+          - name: claimstatus
+            description: "Claim status code"
+          - name: billedamt
+            description: "Total billed amount"
+          - name: allowedamt
+            description: "Total allowed amount"
+          - name: paidamt
+            description: "Total paid amount"
+          - name: claimtype
+            description: "Claim type (I=Institutional, P=Professional)"
+
+      - name: clline
+        description: "Claim line/service detail"
+        columns:
+          - name: claimid
+            description: "Claim identifier"
+            tests:
+              - not_null
+          - name: lineseq
+            description: "Line sequence number"
+            tests:
+              - not_null
+          - name: proccode
+            description: "Procedure code (CPT/HCPCS)"
+          - name: revcode
+            description: "Revenue code"
+          - name: svcunits
+            description: "Service units/quantity"
+          - name: billedamt
+            description: "Line billed amount"
+          - name: allowedamt
+            description: "Line allowed amount"
+          - name: paidamt
+            description: "Line paid amount"
+          - name: pos
+            description: "Place of service code"
+
+      - name: cladjust
+        description: "Claim adjustment records"
+        schema: BRONZE_RAW_QNXT
+        columns:
+          - name: claimid
+            description: "Claim identifier"
+          - name: adjustseq
+            description: "Adjustment sequence"
+          - name: adjustcode
+            description: "Adjustment reason code"
+          - name: adjustamt
+            description: "Adjustment amount"
+          - name: adjustdate
+            description: "Adjustment date"
+
+      - name: cldiag
+        description: "Claim diagnosis codes"
+        schema: BRONZE_RAW_QNXT
+        columns:
+          - name: claimid
+            description: "Claim identifier"
+          - name: diagseq
+            description: "Diagnosis sequence (1=primary)"
+          - name: diagcode
+            description: "ICD diagnosis code"
+          - name: diagtype
+            description: "Diagnosis code type (ICD9/ICD10)"
+
+      - name: clproc
+        description: "Claim procedure codes"
+        schema: BRONZE_RAW_QNXT
+        columns:
+          - name: claimid
+            description: "Claim identifier"
+          - name: procseq
+            description: "Procedure sequence"
+          - name: proccode
+            description: "Procedure code"
+          - name: proctype
+            description: "Procedure code type"
+
+      # ============================================
+      # PROVIDER TABLES
+      # ============================================
+      - name: provider
+        description: "Provider master information"
+        columns:
+          - name: provid
+            description: "Provider identifier"
+            tests:
+              - not_null
+              - unique
+          - name: provname
+            description: "Provider name"
+          - name: npi
+            description: "National Provider Identifier"
+          - name: taxid
+            description: "Tax identification number"
+          - name: provtype
+            description: "Provider type code"
+          - name: provstatus
+            description: "Provider status"
+
+      - name: provaddr
+        description: "Provider address information"
+        columns:
+          - name: provid
+            description: "Provider identifier"
+          - name: addrtype
+            description: "Address type"
+          - name: addr1
+            description: "Address line 1"
+          - name: city
+            description: "City"
+          - name: state
+            description: "State"
+          - name: zip
+            description: "ZIP code"
+
+      - name: provspec
+        description: "Provider specialty information"
+        columns:
+          - name: provid
+            description: "Provider identifier"
+          - name: speccode
+            description: "Specialty code"
+          - name: spectype
+            description: "Specialty type (P=Primary, S=Secondary)"
+          - name: effdate
+            description: "Effective date"
+          - name: termdate
+            description: "Termination date"
+
+      - name: provcontract
+        description: "Provider contract information"
+        columns:
+          - name: provid
+            description: "Provider identifier"
+          - name: contractid
+            description: "Contract identifier"
+          - name: networkid
+            description: "Network identifier"
+          - name: effdate
+            description: "Contract effective date"
+          - name: termdate
+            description: "Contract termination date"
+
+      - name: provnetwork
+        description: "Provider network affiliations"
+        columns:
+          - name: networkid
+            description: "Network identifier"
+          - name: networkname
+            description: "Network name"
+          - name: networktype
+            description: "Network type"
+
+      # ============================================
+      # REFERENCE TABLES
+      # ============================================
+      - name: diagcode
+        description: "Diagnosis code reference"
+        columns:
+          - name: diagcode
+            description: "Diagnosis code"
+            tests:
+              - not_null
+          - name: diagdesc
+            description: "Diagnosis description"
+          - name: diagtype
+            description: "Code type (ICD9/ICD10)"
+          - name: effdate
+            description: "Effective date"
+          - name: termdate
+            description: "Termination date"
+
+      - name: proccode
+        description: "Procedure code reference"
+        columns:
+          - name: proccode
+            description: "Procedure code"
+            tests:
+              - not_null
+          - name: procdesc
+            description: "Procedure description"
+          - name: proctype
+            description: "Code type (CPT/HCPCS)"
+
+      - name: revcode
+        description: "Revenue code reference"
+        columns:
+          - name: revcode
+            description: "Revenue code"
+          - name: revdesc
+            description: "Revenue code description"
+
+      - name: postype
+        description: "Place of service reference"
+        columns:
+          - name: poscode
+            description: "Place of service code"
+          - name: posdesc
+            description: "Place of service description"
+
+      - name: claimstatus
+        description: "Claim status reference"
+        columns:
+          - name: statuscode
+            description: "Status code"
+          - name: statusdesc
+            description: "Status description"
+
+  - name: qnxt_seeds
+    description: "QNXT seeded sample data tables"
+    database: "{{ var('qnxt_database', 'RAW') }}"
+    schema: BRONZE_RAW_QNXT
+    loaded_at_field: _loaded_at
+    tables:
+      - name: cldiag
+        description: "Claim diagnosis codes (seeded sample data)"
+      - name: clproc
+        description: "Claim procedure codes (seeded sample data)"
+      - name: cladjust
+        description: "Claim adjustment records (seeded sample data)"

@@ -1,0 +1,37 @@
+# dbt artifacts
+target/
+dbt_packages/
+logs/
+
+# Environment
+.env
+.envrc
+
+# Profiles (contains credentials)
+profiles.yml
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+venv/
+.venv/
+ENV/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Local development
+.user.yml
