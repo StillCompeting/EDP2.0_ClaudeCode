@@ -1,0 +1,155 @@
+version: 2
+
+sources:
+  - name: mdm
+    description: "Master Data Management golden records and crosswalks"
+    database: "{{ var('mdm_database', 'PLAYGROUND') }}"
+    schema: "BRONZE_RAW_MDM"  # Seeds load here via generate_schema_name macro
+    freshness:
+      warn_after: {count: 24, period: hour}
+      error_after: {count: 48, period: hour}
+    loaded_at_field: _loaded_at
+
+    tables:
+      # ============================================
+      # GOLDEN RECORDS
+      # ============================================
+      - name: golden_member
+        description: >
+          MDM-mastered member golden record. Contains survivorship-resolved
+          demographics from all source systems (QNXT, Labs, CRM, etc.)
+        columns:
+          - name: golden_member_id
+            description: "MDM-assigned unique member identifier"
+            tests:
+              - not_null
+              - unique
+          - name: first_name
+            description: "Survivorship-resolved first name"
+          - name: last_name
+            description: "Survivorship-resolved last name"
+          - name: date_of_birth
+            description: "Survivorship-resolved date of birth"
+          - name: gender
+            description: "Survivorship-resolved gender"
+          - name: ssn
+            description: "Survivorship-resolved SSN"
+          - name: match_confidence
+            description: "MDM match confidence score (0-100)"
+          - name: merge_history
+            description: "JSON array of merge events"
+          - name: is_active
+            description: "Whether the golden record is currently active"
+          - name: created_at
+            description: "Record creation timestamp in MDM"
+          - name: updated_at
+            description: "Record last update timestamp in MDM"
+          - name: _loaded_at
+            description: "Timestamp when record was loaded to Snowflake"
+
+      - name: golden_provider
+        description: >
+          MDM-mastered provider golden record. Contains survivorship-resolved
+          provider data from all source systems.
+        columns:
+          - name: golden_provider_id
+            description: "MDM-assigned unique provider identifier"
+            tests:
+              - not_null
+              - unique
+          - name: provider_name
+            description: "Survivorship-resolved provider name"
+          - name: npi
+            description: "National Provider Identifier"
+          - name: tax_id
+            description: "Survivorship-resolved Tax ID"
+          - name: provider_type
+            description: "Provider type classification"
+          - name: primary_specialty
+            description: "Primary specialty code"
+          - name: match_confidence
+            description: "MDM match confidence score (0-100)"
+          - name: is_active
+            description: "Whether the golden record is currently active"
+          - name: created_at
+            description: "Record creation timestamp in MDM"
+          - name: updated_at
+            description: "Record last update timestamp in MDM"
+          - name: _loaded_at
+            description: "Timestamp when record was loaded to Snowflake"
+
+      # ============================================
+      # CROSSWALK TABLES
+      # ============================================
+      - name: member_crosswalk
+        description: >
+          Maps source system member IDs to MDM golden member IDs.
+          Enables resolution of any source member ID to the mastered identity.
+        columns:
+          - name: crosswalk_id
+            description: "Unique crosswalk record identifier"
+            tests:
+              - not_null
+              - unique
+          - name: golden_member_id
+            description: "MDM golden member identifier"
+            tests:
+              - not_null
+          - name: source_system
+            description: "Source system code (QNXT, LABS, CRM, etc.)"
+            tests:
+              - not_null
+          - name: source_member_id
+            description: "Member ID in the source system"
+            tests:
+              - not_null
+          - name: match_confidence
+            description: "Confidence score for this link (0-100)"
+          - name: match_rule
+            description: "MDM rule that created this link"
+          - name: is_primary
+            description: "Whether this is the primary source for this golden record"
+          - name: effective_date
+            description: "When this link became effective"
+          - name: termination_date
+            description: "When this link was terminated (null if active)"
+          - name: created_at
+            description: "Record creation timestamp"
+          - name: _loaded_at
+            description: "Timestamp when record was loaded to Snowflake"
+
+      - name: provider_crosswalk
+        description: >
+          Maps source system provider IDs to MDM golden provider IDs.
+        columns:
+          - name: crosswalk_id
+            description: "Unique crosswalk record identifier"
+            tests:
+              - not_null
+              - unique
+          - name: golden_provider_id
+            description: "MDM golden provider identifier"
+            tests:
+              - not_null
+          - name: source_system
+            description: "Source system code (QNXT, CAQH, NPPES, etc.)"
+            tests:
+              - not_null
+          - name: source_provider_id
+            description: "Provider ID in the source system"
+            tests:
+              - not_null
+          - name: match_confidence
+            description: "Confidence score for this link (0-100)"
+          - name: match_rule
+            description: "MDM rule that created this link"
+          - name: is_primary
+            description: "Whether this is the primary source for this golden record"
+          - name: effective_date
+            description: "When this link became effective"
+          - name: termination_date
+            description: "When this link was terminated (null if active)"
+          - name: created_at
+            description: "Record creation timestamp"
+          - name: _loaded_at
+            description: "Timestamp when record was loaded to Snowflake"

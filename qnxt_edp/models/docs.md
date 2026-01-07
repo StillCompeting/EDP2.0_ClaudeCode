@@ -21,29 +21,53 @@ in Snowflake.
 ### Data Flow
 
 ```
-QNXT Source (RAW_QNXT)
-    ↓
-Bronze Layer (Staging)
-    ├── stg_qnxt__member
-    ├── stg_qnxt__mbrelig
-    ├── stg_qnxt__clclaim
-    ├── stg_qnxt__clline
+QNXT Source (RAW_QNXT)          MDM Source (RAW_MDM)
+    ↓                               ↓
+Bronze Layer (Staging)          Bronze Layer (MDM)
+    ├── stg_qnxt__member            ├── stg_mdm__golden_member
+    ├── stg_qnxt__mbrelig           ├── stg_mdm__golden_provider
+    ├── stg_qnxt__clclaim           ├── stg_mdm__member_crosswalk
+    ├── stg_qnxt__clline            └── stg_mdm__provider_crosswalk
     ├── stg_qnxt__cldiag
     ├── stg_qnxt__clproc
     ├── stg_qnxt__cladjust
     └── stg_qnxt__provider
-    ↓
-Silver Layer (Core)
-    ├── dim_member
-    ├── dim_provider
-    ├── dim_date
-    └── fct_claim
-    ↓
-Gold Layer (Marts)
-    ├── Claims Analytics
-    ├── Membership Analytics
-    └── Financial Analytics
+            ↓                           ↓
+        Silver Layer (Core) ←──Crosswalk──→
+            ├── dim_member (source-aligned)
+            ├── dim_golden_member (MDM-mastered)
+            ├── dim_provider (source-aligned)
+            ├── dim_golden_provider (MDM-mastered)
+            ├── dim_date
+            ├── fct_claim (source IDs)
+            └── fct_claim_conformed (golden IDs)
+            ↓
+        Gold Layer (Marts)
+            ├── Claims Analytics
+            ├── Membership Analytics
+            └── Financial Analytics
 ```
+
+## MDM Integration
+
+This project supports Master Data Management (MDM) integration for identity resolution.
+
+### Golden Records
+
+MDM publishes "golden" member and provider records that represent the single source
+of truth for entity identity after match/merge processing.
+
+### Crosswalk Tables
+
+Crosswalk tables map source system IDs to golden IDs:
+- `member_crosswalk`: QNXT member_id → golden_member_id
+- `provider_crosswalk`: QNXT provider_id → golden_provider_id
+
+### Benefits
+
+- **Stable Identity**: Marts stay consistent even when source IDs change
+- **Multi-Source Support**: Add new sources (labs, CRM, etc.) without rewriting identity logic
+- **Backwards Compatibility**: Legacy dimensions remain available during migration
 
 ## Key Entities
 
@@ -233,3 +257,44 @@ The date when the healthcare service ended. For single-day services, this will
 equal the service from date. For multi-day services (e.g., inpatient stays),
 this is the discharge or end date.
 {% enddocs %}
+
+
+{% docs golden_member_id %}
+**MDM Golden Member Identifier**
+
+A unique identifier assigned by the Master Data Management (MDM) system to represent
+a single, mastered member identity. This ID remains stable even when source system
+IDs change or when multiple source records are merged.
+
+Format: Alphanumeric, prefixed with 'GM-' (e.g., GM-000001)
+{% enddocs %}
+
+
+{% docs golden_provider_id %}
+**MDM Golden Provider Identifier**
+
+A unique identifier assigned by the Master Data Management (MDM) system to represent
+a single, mastered provider identity. This ID remains stable across source system
+changes and merges.
+
+Format: Alphanumeric, prefixed with 'GP-' (e.g., GP-000001)
+{% enddocs %}
+
+
+{% docs mdm_crosswalk %}
+**MDM Crosswalk Tables**
+
+Crosswalk tables maintain the relationship between source system identifiers and
+MDM golden record identifiers. Key attributes include:
+
+| Column | Description |
+|--------|-------------|
+| source_system | Code identifying the source (QNXT, LABS, CRM, NPPES, etc.) |
+| source_id | The identifier from the source system |
+| golden_id | The MDM-assigned golden record identifier |
+| match_confidence | Confidence score (0-100) for the identity match |
+| match_rule | The MDM rule that created this link |
+| is_primary | Whether this source is the "master" for this golden record |
+
+{% enddocs %}
+
