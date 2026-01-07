@@ -20,6 +20,10 @@ vars:
   qnxt_database: 'PLAYGROUND'
   qnxt_schema: 'RAW_QNXT'
 
+  # MDM source configuration
+  mdm_database: 'PLAYGROUND'
+  mdm_schema: 'RAW_MDM'
+
   # Target schema configuration for medallion layers
   bronze_schema: 'BRONZE'
   silver_schema: 'SILVER'
@@ -32,6 +36,10 @@ models:
       +schema: bronze
       +materialized: view
       +tags: ['bronze', 'staging']
+
+      # MDM staging models
+      mdm:
+        +tags: ['bronze', 'staging', 'mdm']
 
     # Marts (Silver and Gold layers)
     marts:
@@ -66,8 +74,29 @@ seeds:
       +schema: RAW_QNXT
       +alias: cladjust
 
+    # MDM seeds - load to RAW_MDM schema for local testing
+    mdm_golden_member:
+      +schema: RAW_MDM
+      +alias: golden_member
+    mdm_golden_provider:
+      +schema: RAW_MDM
+      +alias: golden_provider
+    mdm_member_crosswalk:
+      +schema: RAW_MDM
+      +alias: member_crosswalk
+      +column_types:
+        effective_date: date
+        termination_date: date
+    mdm_provider_crosswalk:
+      +schema: RAW_MDM
+      +alias: provider_crosswalk
+      +column_types:
+        effective_date: date
+        termination_date: date
+
 snapshots:
   qnxt_edp:
     +schema: silver
     +strategy: timestamp
     +updated_at: updated_at
+
