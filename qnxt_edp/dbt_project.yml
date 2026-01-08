@@ -18,7 +18,7 @@ clean-targets:
 vars:
   # Source database and schema configuration
   qnxt_database: 'PLAYGROUND'
-  qnxt_schema: 'RAW_QNXT'
+  qnxt_schema: 'BRONZE_RAW_QNXT'  # Seeds load here via generate_schema_name
 
   # MDM source configuration
   mdm_database: 'PLAYGROUND'
@@ -63,7 +63,19 @@ models:
 seeds:
   qnxt_edp:
     +schema: silver
-    # Source table seeds - load to RAW_QNXT schema
+    # Source table seeds - load to RAW_QNXT schema (becomes BRONZE_RAW_QNXT via generate_schema_name)
+    sample_claims:
+      +schema: RAW_QNXT
+      +alias: clclaim
+    sample_claim_lines:
+      +schema: RAW_QNXT
+      +alias: clline
+    sample_members:
+      +schema: RAW_QNXT
+      +alias: member
+    sample_providers:
+      +schema: RAW_QNXT
+      +alias: provider
     sample_cldiag:
       +schema: RAW_QNXT
       +alias: cldiag
@@ -73,6 +85,15 @@ seeds:
     sample_cladjust:
       +schema: RAW_QNXT
       +alias: cladjust
+    sample_proccode:
+      +schema: RAW_QNXT
+      +alias: proccode
+    sample_mbrelig:
+      +schema: RAW_QNXT
+      +alias: mbrelig
+    sample_diagcode:
+      +schema: RAW_QNXT
+      +alias: diagcode
 
     # MDM seeds - load to RAW_MDM schema for local testing
     mdm_golden_member:

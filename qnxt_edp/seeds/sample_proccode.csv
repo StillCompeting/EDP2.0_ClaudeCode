@@ -1,0 +1,22 @@
+proccode,procdesc,proctype,_loaded_at
+99213,Office visit established patient 15 minutes,CPT,2024-01-01 10:00:00
+99214,Office visit established patient 25 minutes,CPT,2024-01-01 10:00:00
+99215,Office visit established patient 40 minutes,CPT,2024-01-01 10:00:00
+99203,Office visit new patient 30 minutes,CPT,2024-01-01 10:00:00
+99204,Office visit new patient 45 minutes,CPT,2024-01-01 10:00:00
+99205,Office visit new patient 60 minutes,CPT,2024-01-01 10:00:00
+99281,Emergency dept visit minimal,CPT,2024-01-01 10:00:00
+99282,Emergency dept visit low severity,CPT,2024-01-01 10:00:00
+99283,Emergency dept visit moderate severity,CPT,2024-01-01 10:00:00
+99284,Emergency dept visit high severity,CPT,2024-01-01 10:00:00
+99285,Emergency dept visit high severity life threat,CPT,2024-01-01 10:00:00
+90834,Psychotherapy 45 minutes,CPT,2024-01-01 10:00:00
+90837,Psychotherapy 60 minutes,CPT,2024-01-01 10:00:00
+90847,Family psychotherapy with patient,CPT,2024-01-01 10:00:00
+J0129,Injection abatacept 10 mg,HCPCS,2024-01-01 10:00:00
+J1745,Injection infliximab 10 mg,HCPCS,2024-01-01 10:00:00
+J9035,Injection bevacizumab 10 mg,HCPCS,2024-01-01 10:00:00
+G0008,Administration of influenza virus vaccine,HCPCS,2024-01-01 10:00:00
+G0009,Administration of pneumococcal vaccine,HCPCS,2024-01-01 10:00:00
+G0438,Annual wellness visit initial,HCPCS,2024-01-01 10:00:00
+G0439,Annual wellness visit subsequent,HCPCS,2024-01-01 10:00:00
