@@ -1,0 +1,11 @@
+diagcode,diagdesc,diagtype,_loaded_at
+I10,Essential (primary) hypertension,ICD10,2024-01-01 10:00:00
+E11.9,Type 2 diabetes mellitus without complications,ICD10,2024-01-01 10:00:00
+J06.9,Acute upper respiratory infection unspecified,ICD10,2024-01-01 10:00:00
+M54.5,Low back pain,ICD10,2024-01-01 10:00:00
+F32.1,Major depressive disorder single episode moderate,ICD10,2024-01-01 10:00:00
+Z00.00,Encounter for general adult medical examination,ICD10,2024-01-01 10:00:00
+K21.0,Gastro-esophageal reflux disease with esophagitis,ICD10,2024-01-01 10:00:00
+J45.20,Mild intermittent asthma uncomplicated,ICD10,2024-01-01 10:00:00
+G43.909,Migraine unspecified not intractable,ICD10,2024-01-01 10:00:00
+N39.0,Urinary tract infection site not specified,ICD10,2024-01-01 10:00:00
